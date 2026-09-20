@@ -1,0 +1,98 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { signUp, signIn } from "@/src/lib/auth-client";
+
+export default function SignUpPage() {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+
+    const res = await signUp.email({
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+    });
+
+    setLoading(false);
+
+    if (res.error) {
+      setError(res.error.message || "Something went wrong.");
+    } else {
+      router.push("/dashboard");
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    await signIn.social({
+      provider: "google",
+      callbackURL: "/dashboard",
+    });
+  }
+
+  return (
+    <main className="max-w-md mx-auto p-6 space-y-4 text-white">
+      <h1 className="text-2xl font-bold">Sign Up</h1>
+      {error && <p className="text-red-500">{error}</p>}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          name="name"
+          placeholder="Full Name"
+          required
+          className="w-full rounded-md bg-neutral-900 border border-neutral-700 px-3 py-2"
+        />
+        <input
+          name="email"
+          type="email"
+          placeholder="Email"
+          required
+          className="w-full rounded-md bg-neutral-900 border border-neutral-700 px-3 py-2"
+        />
+        <input
+          name="password"
+          type="password"
+          placeholder="Password"
+          required
+          minLength={8}
+          className="w-full rounded-md bg-neutral-900 border border-neutral-700 px-3 py-2"
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-white text-black font-medium rounded-md px-4 py-2 hover:bg-gray-200 disabled:opacity-50"
+        >
+          {loading ? "Creating account..." : "Create Account"}
+        </button>
+      </form>
+
+      <div className="flex items-center gap-2">
+        <div className="h-px bg-neutral-700 flex-1" />
+        <span className="text-neutral-500 text-sm">or</span>
+        <div className="h-px bg-neutral-700 flex-1" />
+      </div>
+
+      <button
+        onClick={handleGoogleSignIn}
+        className="w-full flex items-center justify-center gap-2 border border-neutral-700 rounded-md px-4 py-2 hover:bg-neutral-900"
+      >
+        Continue with Google
+      </button>
+
+      <p className="text-sm text-neutral-400 text-center">
+        Already have an account?{" "}
+        <a href="/sign-in" className="underline">
+          Sign in
+        </a>
+      </p>
+    </main>
+  );
+}
