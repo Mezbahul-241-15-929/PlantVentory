@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { signUp, signIn } from "@/lib/auth-client";
 
 export default function SignUpPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -16,83 +18,62 @@ export default function SignUpPage() {
 
     const formData = new FormData(e.currentTarget);
 
-    const res = await signUp.email({
-      name: formData.get("name") as string,
-      email: formData.get("email") as string,
-      password: formData.get("password") as string,
-    });
+    try {
+      const res = await signUp.email({
+        name: formData.get("name") as string,
+        email: formData.get("email") as string,
+        password: formData.get("password") as string,
+      });
 
-    setLoading(false);
-
-    if (res.error) {
-      setError(res.error.message || "Something went wrong.");
-    } else {
-      router.push("/dashboard");
+      if (res.error) {
+        setError(res.error.message || "Something went wrong.");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch {
+      setError("Unable to create your account right now. Please try again.");
+    } finally {
+      setLoading(false);
     }
   }
 
   async function handleGoogleSignIn() {
-    await signIn.social({
-      provider: "google",
-      callbackURL: "/dashboard",
-    });
+    setError(null);
+    setGoogleLoading(true);
+    try {
+      await signIn.social({
+        provider: "google",
+        callbackURL: "/dashboard",
+      });
+    } catch {
+      setError("Unable to continue with Google. Please try again.");
+      setGoogleLoading(false);
+    }
   }
 
   return (
-    <main className="max-w-md mx-auto p-6 space-y-4 text-white">
-      <h1 className="text-2xl font-bold">Sign Up</h1>
-      {error && <p className="text-red-500">{error}</p>}
+    <main className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-10 sm:px-6">
+      <section className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">Create your account</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Start organizing your plant collection.</p>
+        </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          name="name"
-          placeholder="Full Name"
-          required
-          className="w-full rounded-md bg-neutral-900 border border-neutral-700 px-3 py-2"
-        />
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          required
-          className="w-full rounded-md bg-neutral-900 border border-neutral-700 px-3 py-2"
-        />
-        <input
-          name="password"
-          type="password"
-          placeholder="Password"
-          required
-          minLength={8}
-          className="w-full rounded-md bg-neutral-900 border border-neutral-700 px-3 py-2"
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-white text-black font-medium rounded-md px-4 py-2 hover:bg-gray-200 disabled:opacity-50"
-        >
-          {loading ? "Creating account..." : "Create Account"}
-        </button>
-      </form>
+        {error && <p role="alert" className="mb-5 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
 
-      <div className="flex items-center gap-2">
-        <div className="h-px bg-neutral-700 flex-1" />
-        <span className="text-neutral-500 text-sm">or</span>
-        <div className="h-px bg-neutral-700 flex-1" />
-      </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2"><label htmlFor="name" className="text-sm font-medium">Full name</label><input id="name" name="name" autoComplete="name" placeholder="Your name" required className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/30" /></div>
+          <div className="space-y-2"><label htmlFor="email" className="text-sm font-medium">Email</label><input id="email" name="email" type="email" autoComplete="email" placeholder="you@example.com" required className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/30" /></div>
+          <div className="space-y-2"><label htmlFor="password" className="text-sm font-medium">Password</label><input id="password" name="password" type="password" autoComplete="new-password" placeholder="At least 8 characters" required minLength={8} className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/30" /></div>
+          <button type="submit" disabled={loading || googleLoading} className="h-11 w-full rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60">{loading ? "Creating account…" : "Create account"}</button>
+        </form>
 
-      <button
-        onClick={handleGoogleSignIn}
-        className="w-full flex items-center justify-center gap-2 border border-neutral-700 rounded-md px-4 py-2 hover:bg-neutral-900"
-      >
-        Continue with Google
-      </button>
+        <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground"><div className="h-px flex-1 bg-border" /><span>OR</span><div className="h-px flex-1 bg-border" /></div>
 
-      <p className="text-sm text-neutral-400 text-center">
-        Already have an account?{" "}
-        <a href="/sign-in" className="underline">
-          Sign in
-        </a>
-      </p>
+        <button type="button" onClick={handleGoogleSignIn} disabled={loading || googleLoading} className="h-11 w-full rounded-lg border border-input bg-background px-4 text-sm font-medium transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60">{googleLoading ? "Connecting…" : "Continue with Google"}</button>
+
+        <p className="mt-6 text-center text-sm text-muted-foreground">Already have an account? <Link href="/sign-in" className="font-medium text-foreground underline-offset-4 hover:underline">Sign in</Link></p>
+      </section>
     </main>
   );
 }

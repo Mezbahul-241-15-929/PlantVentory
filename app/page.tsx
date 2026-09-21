@@ -1,5 +1,6 @@
 "use client";
 
+import { Hero1 } from "@/components/hero1";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
@@ -7,6 +8,7 @@ export default function Home() {
 
   return (
     <>
+    <Hero1/>
     </>
   );
 }
