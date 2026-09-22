@@ -3,13 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Sprout,House  } from "lucide-react";
 import ModeToggle from "@/components/ModeTogggle";
 import AuthActions from "@/components/AuthActions";
+import MobileNav from "@/components/MobileNav";
 
 
 
 
 function Navbar() {
     return (
-        <nav className="border-b bg-background">
+        <nav className="relative border-b bg-background">
             <div className="mx-auto w-full max-w-7xl px-3 sm:px-4">
                 <div className="flex h-16 min-w-0 items-center justify-between gap-3">
                     {/* Logo */}
@@ -23,7 +24,7 @@ function Navbar() {
                     </div>
 
                     {/* Navbar components */}
-                    <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+                    <div className="hidden shrink-0 items-center gap-1 sm:gap-2 md:flex">
                         <Button
                             variant="ghost"
                             className="flex items-center gap-2 px-2 sm:px-2.5"
@@ -31,7 +32,7 @@ function Navbar() {
                             nativeButton={false}
                         >
                             <House className="size-4" />
-                            <span className="hidden lg:inline">Home</span>
+                            <span>Home</span>
                         </Button>
                         <Button
                             variant="ghost"
@@ -40,11 +41,12 @@ function Navbar() {
                             nativeButton={false}
                         >
                             <Sprout className="size-4" />
-                            <span className="hidden lg:inline">Dashboard</span>
+                            <span>Dashboard</span>
                         </Button>
                         <ModeToggle />
                         <AuthActions />
                     </div>
+                    <MobileNav />
                 </div>
             </div>
         </nav>
